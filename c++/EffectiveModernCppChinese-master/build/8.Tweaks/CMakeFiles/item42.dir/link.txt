@@ -1,0 +1,3 @@
+D:\cmake\cmake-3.27.0-rc4-windows-x86_64\bin\cmake.exe -E rm -f CMakeFiles\item42.dir/objects.a
+D:\mingw\mingw64\bin\ar.exe qc CMakeFiles\item42.dir/objects.a @CMakeFiles\item42.dir\objects1.rsp
+D:\mingw\mingw64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\item42.dir/objects.a -Wl,--no-whole-archive -o item42.exe -Wl,--out-implib,libitem42.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\item42.dir\linkLibs.rsp

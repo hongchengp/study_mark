@@ -1,0 +1,3 @@
+D:\cmake\cmake-3.27.0-rc4-windows-x86_64\bin\cmake.exe -E rm -f CMakeFiles\base15.dir/objects.a
+D:\mingw\mingw64\bin\ar.exe qc CMakeFiles\base15.dir/objects.a @CMakeFiles\base15.dir\objects1.rsp
+D:\mingw\mingw64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\base15.dir/objects.a -Wl,--no-whole-archive -o base15.exe -Wl,--out-implib,libbase15.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\base15.dir\linkLibs.rsp
