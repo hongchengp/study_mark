@@ -125,6 +125,82 @@ func Recover(c *gin.Context) {
 
 
 
+## day1 http基础
+
+想要 进行网络通信
+
+1. 服务端 listen(network, addr)
+2. 客户端 connect(network, addr) // addr 是服务端的
+
+
+
+而http，network是 确定的。 so 确定addr就可以
+
+```go
+http.ListenAndServe(addr, handler) // 会将所有的，连接addr的请求，都交给 handler处理（他是个回调函数 & 开协程）
+// 如果不行让 handler 全部处理，可以
+http.HandleFunc(pattern string, handler) 
+l := net.Listen(network, addr)
+http.Serve(l, nil)
+```
+
+思路：
+
+让 Engine 实现 ServeHTTP接口，http.ListenAndServe(addr, engine) // 接管所有的http请求，在请求中，根据 req.URL.Path 找到对应的 处理回调函数
+
+
+
+Engine 实现 Pattern 到 handler 的映射
+
+后面的 router 会实现 req.URL.Path 到 Pattern的映射
+
+
+
+## day2 Context
+
+
+
+Context 用来 封装，req 和 w。因为一次http处理，本质是 读取 req，then handler ，then 写入 w，发送给 服务端
+
+封装的思想（隐藏细节 & 暴露抽象接口）
+
+而且 它是动态路由参数的保存者 根据req.URL.Path 解析的动态路由参数，保存在 Context中
+
+
+
+## day3 Trie
+
+前缀树，实现了动态路由
+
+insert（method, pattern）// pattern是用户注册的路径 比如 /hello/:name
+
+search(method, path) // path是 http中url路径，比如 /hello/yyj 我们要将 yyj参数 存入 name，实现动态路由
+
+如果是 : 开头，那就直接是匹配的
+
+tire 它是一个 key value结构，对于 路由来说，key 和 value 都是 pattern，关键是 根据 path 找到 pattern
+
+
+
+tire它是一个树结构，有孩子的
+
+
+
+## day4 分组控制
+
+这个简单，将分组的前缀 + pattern，就是完整的pattern了
+
+```go
+r := gee.New()
+g := r.Group("/yyj")
+g.addRoute("/hello", handler HandleFunc) // 完整路径就是 /yyj/hello
+g.addRoute("/name", handler HandleFunc) // 完整路径就是 /yyj/name
+```
+
+so，Group的关键是保存 prefix & 实现 addRoute方法，就是将 路由的方法，交给 Group负责
+
+engine也可以，那engine就继承 Group咯
+
 
 
 # 7天gee-cache
@@ -211,17 +287,80 @@ readRequest一直读（协程，不怕阻塞），读完一个就用协程调用
 
 ## 2 高性能客户端
 
+客户端 要实现的功能 
+
+1. 传入 server地址建立连接
+2. 调用Call 进行远程调用(Call(ServiceMethod sring, args interface{}, reply interface{}) error)
+
+
+
+具体  Dial(network, addr, opts…) // opts 是通讯的编码方式
+
+​		then Dial中 调用serverConn -> serverCodec -> 一直监听读（receive方法）
+
+​		receive读到了 then 将body 解码到 reply 
+
+
+
+type call struct 封装了 一次call的参数
+
+Header 封装了 seq（标识call），serviceMethod ， error
+
+body 没有这个结构体 但是 一次传输 由 header 和 body 组成
+
+客户端 中body 是args，服务端是 reply
+
+异步 和 同步调用
+
+异步就是 调用Call，send请求就好，不用等 接受，要结果时 Call.done()。同步一般用 chan
+
+同步 调用 异步 + done（）就可以了
+
+
+
+call是要保存到调用结束的，用map[seq]*Call
+
+register remove 终止
+
+
+
 
 
 ## 3 服务注册
+
+一个 server 中可以有很多个 服务（就是一个类，它的方法就是 被调用的）
+
+为了 可扩展性，应该all 类型都可以 then用interface{}, 而且我们要知道 类名 方法 类型等信息 用反射
+
+then serviceMethod ，用service找到类，Method找到 类的方法，Method的参数，根据反射信息 new，
+
+then将args（网络传输的，decode），调用，将reply 发送给客户端
+
+数据的发送和接受 由codec负责
 
 
 
 ## 4 超时处理
 
+1. go 异步调用
+2. select 看是 go异步调用快，还是超时快。（异步 then 带来了 通信  so 用chan）
+
+
+
+连接，直接有DialTimeout
+
 
 
 ## 5 支持HTTP协议
+
+只是连接用的http协议，连接完成后还是用的rpc协议
+
+服务器的开始还是要，用 net.Listen()的
+
+而 http开启，有两种
+
+1. http.ListenAndServer(addr, handler Handler)
+2. http.Server(conn net.Conn, nil)
 
 
 
