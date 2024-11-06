@@ -195,6 +195,8 @@ r := gee.New()
 g := r.Group("/yyj")
 g.addRoute("/hello", handler HandleFunc) // 完整路径就是 /yyj/hello
 g.addRoute("/name", handler HandleFunc) // 完整路径就是 /yyj/name
+
+// 
 ```
 
 so，Group的关键是保存 prefix & 实现 addRoute方法，就是将 路由的方法，交给 Group负责
