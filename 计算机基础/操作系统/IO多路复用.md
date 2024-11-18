@@ -20,4 +20,3 @@
 
 可以减少上下文切换的开销
 
-![image-20240423005047317](../../../AppData/Roaming/Typora/typora-user-images/image-20240423005047317.png)
